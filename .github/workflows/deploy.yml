@@ -1,0 +1,24 @@
+name: Deploy to Hetzner
+
+on: [workflow_dispatch]
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.SSH_KEY }}
+          script: |
+            cd ~/app
+            git pull origin main
+            docker build -t docker-test .
+            docker stop docker-test || true
+            docker rm docker-test || true
+            docker run -d --name docker-test -p 80:80 docker-test
